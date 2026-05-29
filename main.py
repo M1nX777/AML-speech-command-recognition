@@ -1,10 +1,7 @@
 from pathlib import Path
-from tqdm import tqdm
-from project_1.data.load_preprocces import (
-    load_data,
-    max_timeshape,
-    one_hot_encoder
-)
+import numpy as np
+from project_1.models.train_functions import normalize_and_pad
+from project_1.data.load_preprocces import load_data, max_timeshape, one_hot_encoder
 from project_1.features.feature_extraction import (
     feature_extrac_mel,
     feature_extrac_mfcc,
@@ -12,10 +9,11 @@ from project_1.features.feature_extraction import (
     split_feature,
     transpose,
 )
+from tqdm import tqdm
 from train_model import Build_CNN_model, Build_MLP_model
 
 
-def start_project():
+def start_project() -> None:
     data_dir = Path.cwd().parent / "project_1_folder" / "data"
     data = load_data(data_dir)
 
@@ -36,26 +34,27 @@ def start_project():
         max_timeshape(fetur_DTsets["mel"]["X"]),
     )
 
-    X_mfcc_transposed = transpose(fetur_DTsets["mfcc"]["X"])
-    X_mel_transposed = transpose(fetur_DTsets["mel"]["X"])
+    for name in fetur_DTsets:
+        fetur_DTsets[name]["X"] = transpose(fetur_DTsets[name]["X"])
+        fetur_DTsets[name]["X"] = normalize_and_pad(
+            fetur_DTsets[name]["X"], name, max_len
+        )
+
+    fetur_DTsets[name]["X"] = np.array(fetur_DTsets[name]["X"], dtype=np.float32)
+    fetur_DTsets[name]["y"] = np.array(fetur_DTsets[name]["y"])
+
+    X_mfcc = fetur_DTsets["mfcc"]["X"]
+    X_mel = fetur_DTsets["mel"]["X"]
 
     y_endoded, target_names = one_hot_encoder(fetur_DTsets["mfcc"]["y"])
 
-    X_train, y_train, X_val, y_val, X_test, y_test = split_feature(
-        X_mfcc_transposed, y_endoded
-    )
+    X_train_val, X_test, y_train_val, y_test = split_feature(X_mfcc, y_endoded)
 
-    Build_MLP_model(
-        X_train, y_train, X_val, y_val, X_test, y_test, target_names, max_len
-    )
+    Build_MLP_model(X_train_val, y_train_val, X_test, y_test, target_names)
 
-    X_train, y_train, X_val, y_val, X_test, y_test = split_feature(
-        X_mel_transposed, y_endoded
-    )
+    X_train_val, y_train_val, X_test, y_test = split_feature(X_mel, y_endoded)
 
-    Build_CNN_model(
-        X_train, y_train, X_val, y_val, X_test, y_test, target_names, max_len
-    )
+    Build_CNN_model(X_train_val, y_train_val, X_test, y_test, target_names)
 
 
 if __name__ == "__main__":

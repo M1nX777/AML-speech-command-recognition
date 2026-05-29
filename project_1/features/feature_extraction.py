@@ -1,21 +1,26 @@
+from pathlib import Path
+from typing import Callable, Sequence
+
 import librosa
 import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def feature_extrac_mfcc(audio, sr):
+def feature_extrac_mfcc(audio: np.ndarray, sr: float) -> np.ndarray:
     mfcc = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=30)
-
     return mfcc
 
 
-def feature_extrac_mel(audio, sr):
-    mel = librosa.feature.melspectrogram(y=audio, sr=sr)
+def feature_extrac_mel(audio: np.ndarray, sr: float) -> np.ndarray:
+    mel = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128)
     return mel
 
 
-def file_opener(file, feature_func):
-    audio, sr = librosa.load(file, sr=None)
+def file_opener(
+    file: Path,
+    feature_func: dict[str, Callable[[np.ndarray, float], np.ndarray]],
+) -> dict[str, np.ndarray]:
+    audio, sr = librosa.load(file, sr=44100)
     results = {}
 
     for name, func in feature_func.items():
@@ -23,28 +28,17 @@ def file_opener(file, feature_func):
     return results
 
 
-def transpose(X):
+def transpose(
+    X: Sequence[np.ndarray] | np.ndarray,
+) -> Sequence[np.ndarray] | np.ndarray:
     return [x.T for x in X]
 
 
-def split_feature(X, y):
-    X_train, X_temp, y_train, y_temp = train_test_split(
-        X, y, stratify=y, test_size=0.2, random_state=42
+def split_feature(
+    X: Sequence[np.ndarray],
+    y: np.ndarray,
+) -> tuple[Sequence[np.ndarray], Sequence[np.ndarray], np.ndarray, np.ndarray]:
+    X_train_val, X_test, y_train_val, y_test = train_test_split(
+        X, y, stratify=y, test_size=0.1, random_state=42
     )
-
-    X_val, X_test, y_val, y_test = train_test_split(
-        X_temp, y_temp, stratify=y_temp, test_size=0.5, random_state=42
-    )
-    return X_train, y_train, X_val, y_val, X_test, y_test
-
-
-def normalize_data(x, name):
-    if name == "mfcc":
-        mean = x.mean(axis=0)
-        std = x.std(axis=0)
-        return (x - mean) / std
-    else:
-        librosa.power_to_db(x, ref=np.max)
-        mean = x.mean(axis=0)
-        std = x.std(axis=0)
-        return (x - mean) / std
+    return X_train_val, X_test, y_train_val, y_test

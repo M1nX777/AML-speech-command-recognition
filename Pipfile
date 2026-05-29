@@ -19,6 +19,9 @@ graphviz = "*"
 plotly = "*"
 nbformat = "*"
 black = "*"
+tensorboard = "*"
+setuptools = "<82"
+ruff = "*"
 
 [dev-packages]
 ipykernel = "*"

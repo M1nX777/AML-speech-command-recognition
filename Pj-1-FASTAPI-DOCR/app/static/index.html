@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Command Classifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgb(255, 255, 255);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 50px;
+            font-size: 45px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 25px;
+            text-align: center;
+        }
+
+        li {
+            color: #6b6b6b;
+            margin-bottom: 10px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        select, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-record {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-record:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-record:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-record.recording {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        .btn-remove-audio {
+            background: #667eea;
+            color: rgb(199, 201, 255);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
+        .btn-clear {
+            background: #f3f4f6;
+            color: #666;
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            text-align: center;
+            color: #999;
+            margin: 25px 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            display: inline-block;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status.show {
+            display: flex;
+        }
+
+        .status-loading {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .prediction {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .confidence-bar {
+            margin-top: 10px;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .scores-table {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .score-row:last-child {
+            border-bottom: none;
+        }
+
+        .score-class {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .score-value {
+            color: #666;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .recording-time {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .recording-time.active {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .prediction {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Speech Command Classifier</h1>
+    <li>Commands: Go | Left | No | On | Right | stop | Up | Yes</li>
+    <div class="container">
+        <h2> Choose a model and record or upload one of the 8 commads listed above</h2>
+
+        <div class="form-group">
+            <label for="model-select">Model Type</label>
+            <select id="model-select">
+                <option value="mel">Mel Spectrogram - CNN model</option>
+                <option value="mfcc">MFCC - MLP model</option>
+            </select>
+        </div>
+
+        <div class="button-group">
+            <button id="record-btn" class="btn-record">🎙️ Record</button>
+            <button id="clear-btn" class="btn-clear" disabled>Clear</button>
+        </div>
+
+        <div class="recording-time" id="recording-time"></div>
+
+        <div class="divider">or upload audio</div>
+
+        <div class="form-group">
+            <input type="file" id="file-input" accept="audio/*" />
+            <button id="btn-remove-audio" class="btn-clear">
+                Remove Audio
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const recordBtn = document.getElementById('record-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const removeAudioBtn = document.getElementById('btn-remove-audio');
+        const modelSelect = document.getElementById('model-select');
+        const fileInput = document.getElementById('file-input');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        const recordingTimeDiv = document.getElementById('recording-time');
+
+        removeAudioBtn.disabled = true;
+
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingStartTime = 0;
+        let recordingInterval = null;
+        const MAX_RECORDING_TIME = 5000; // 5 seconds max
+
+        // Initialize audio
+        async function initAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const wavBlob = await convertBlobToWav(audioBlob);
+                    audioChunks = [];
+                    await sendAudio(wavBlob, 'recording.wav');
+                };
+            } catch (error) {
+                showStatus('Error accessing microphone', 'error');
+                console.error('Microphone error:', error);
+            }
+        }
+
+        recordBtn.addEventListener('click', async () => {
+            if (!mediaRecorder) {
+                await initAudio();
+            }
+
+            if (!isRecording) {
+                // Start recording
+                audioChunks = [];
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.textContent = '⏹️ Stop';
+                clearBtn.disabled = true;
+                fileInput.disabled = true;
+                recordingStartTime = Date.now();
+
+                recordingInterval = setInterval(() => {
+                    const elapsed = Date.now() - recordingStartTime;
+                    const seconds = (elapsed / 1000).toFixed(1);
+                    recordingTimeDiv.textContent = `Recording: ${seconds}s`;
+                    recordingTimeDiv.classList.add('active');
+
+                    if (elapsed >= MAX_RECORDING_TIME) {
+                        stopRecording();
+                    }
+                }, 100);
+            } else {
+                stopRecording();
+            }
+        });
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordBtn.classList.remove('recording');
+            recordBtn.textContent = '🎙️ Record';
+            clearBtn.disabled = false;
+            fileInput.disabled = false;
+            clearInterval(recordingInterval);
+            recordingTimeDiv.textContent = '';
+            recordingTimeDiv.classList.remove('active');
+            showStatus('Processing audio...', 'loading');
+        }
+
+        clearBtn.addEventListener('click', () => {
+            audioChunks = [];
+            hideResult();
+            hideStatus();
+            recordBtn.textContent = '🎙️ Record';
+            clearBtn.disabled = true;
+            removeAudioBtn.disabled = true;
+            fileInput.value = '';
+            resultDiv.innerHTML = '';
+        });
+
+        async function convertBlobToWav(blob) {
+            const arrayBuffer = await blob.arrayBuffer();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const decoded = await audioContext.decodeAudioData(arrayBuffer);
+            const numChannels = decoded.numberOfChannels;
+            const sampleRate = decoded.sampleRate;
+            const length = decoded.length * numChannels;
+            const interleaved = new Float32Array(length);
+
+            for (let channel = 0; channel < numChannels; channel++) {
+                const channelData = decoded.getChannelData(channel);
+                for (let i = 0; i < channelData.length; i++) {
+                    interleaved[i * numChannels + channel] = channelData[i];
+                }
+            }
+
+            const wavBuffer = encodeWAV(interleaved, sampleRate, numChannels);
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        }
+
+        function encodeWAV(samples, sampleRate, numChannels) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+
+            floatTo16BitPCM(view, 44, samples);
+            return buffer;
+        }
+
+        function floatTo16BitPCM(output, offset, input) {
+            for (let i = 0; i < input.length; i++, offset += 2) {
+                let s = Math.max(-1, Math.min(1, input[i]));
+                s = s < 0 ? s * 0x8000 : s * 0x7fff;
+                output.setInt16(offset, s, true);
+            }
+        }
+
+
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            removeAudioBtn.disabled = false;
+            showStatus('Processing audio...', 'loading');
+            await sendAudio(file);
+        });
+
+        removeAudioBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            hideResult();
+            hideStatus();
+            removeAudioBtn.disabled = true;
+        });
+
+        async function sendAudio(audioBlob, fileName = 'audio.wav') {
+            const featureType = modelSelect.value;
+            const formData = new FormData();
+            formData.append('file', audioBlob, fileName);
+            formData.append('feature_type', featureType);
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResult(data, featureType);
+                showStatus('Prediction complete!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayResult(data, featureType) {
+            const { prediction, confidence, scores } = data;
+
+            // Parse scores from response
+            const scoresArray = Array.isArray(scores) ? scores : [];
+            const classes = ['go', 'left', 'no', 'on', 'right', 'stop', 'up', 'yes'];
+
+            let resultHTML = `
+                <div class="result-label">Prediction</div>
+                <div class="prediction">${prediction}</div>
+                <div class="confidence-bar">
+                    <div class="confidence-label">
+                        <span>Confidence</span>
+                        <span>${(confidence).toFixed(1)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${confidence}%"></div>
+                    </div>
+                </div>
+            `;
+
+            // Add scores table if available
+            if (scoresArray.length > 0) {
+                resultHTML += '<div class="scores-table">';
+                scoresArray.forEach((score, idx) => {
+                    if (idx < classes.length) {
+                        resultHTML += `
+                            <div class="score-row">
+                                <span class="score-class">${classes[idx]}</span>
+                                <span class="score-value">${(score * 100).toFixed(1)}%</span>
+                            </div>
+                        `;
+                    }
+                });
+                resultHTML += '</div>';
+            }
+
+            resultDiv.innerHTML = resultHTML;
+            resultDiv.classList.add('show');
+        }
+
+        function showStatus(message, type) {
+            statusDiv.innerHTML = '';
+            if (type === 'loading') {
+                statusDiv.innerHTML = `<span class="spinner"></span><span>${message}</span>`;
+            } else {
+                statusDiv.textContent = message;
+            }
+            statusDiv.className = `status show status-${type}`;
+        }
+
+        function hideStatus() {
+            statusDiv.classList.remove('show');
+        }
+
+        function hideResult() {
+            resultDiv.classList.remove('show');
+        }
+
+        // Try to initialize audio on page load
+        window.addEventListener('load', () => {
+            // Don't initialize until user clicks
+        });
+    </script>
+</body>
+</html>
