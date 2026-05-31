@@ -33,27 +33,28 @@ The project uses Python 3.10 and the following libraries:
 ### Installing
 
 Clone the repository:
-git clone https://github.com/M1nX777/AML-speech-command-recognition.git
-git checkout project-1
+* git clone https://github.com/M1nX777/AML-speech-command-recognition.git
+* git checkout project-1
+* cd AML-speech-command-recognition
 
 Install the dependencies using the project dependency file.
-pipenv install
-pipenv sync
-pipenv shell
+* pipenv install
+* pipenv sync
+* pipenv shell
 
 Running with Docker
 Note: If Docker is not installed, install it first. A computer restart may be required after installation before Docker is available.
 # Navigate to the Docker folder
-cd docker
+* cd API-folder
 
 # Build the Docker image
-docker build -t fastapi-app .
+* docker build -t fastapi-app .
 
 # Run the container
-docker run -p 80:80 fastapi-app
+* docker run -p 80:80 fastapi-app
 
 Then open your browser and go to:
-http://localhost:80
+* http://localhost:80
 
 
 ## Current Models
