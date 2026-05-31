@@ -11,7 +11,7 @@ name_cnn = "Trained_model_mel-"
 name_mlp = "Trained_model_mfcc-"
 
 BASE_DIR = Path(__file__).resolve().parent
-full_path = BASE_DIR / (name_cnn + __version__ + ".keras")
+full_path = BASE_DIR / (name_mlp + __version__ + ".keras")
 
 model: Any = load_model(full_path)
 
@@ -48,7 +48,7 @@ def pad_frames(x: np.ndarray, max_len: int = MAX_FRAMES) -> np.ndarray:
 
 
 def extract_features(
-    audio: np.ndarray, sr: float, kind: Literal["mfcc", "mel"] = "mel"
+    audio: np.ndarray, sr: float, kind: Literal["mfcc", "mel"] = "mfcc"
 ) -> np.ndarray:
     if kind == "mfcc":
         x = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=30)
@@ -66,7 +66,7 @@ def extract_features(
 
 
 def prediction_pipeline(
-    audio_bytes: bytes, feature_type: Literal["mfcc", "mel"] = "mel"
+    audio_bytes: bytes, feature_type: Literal["mfcc", "mel"] = "mfcc"
 ) -> dict[str, object]:
     audio, sr = load_audio_bytes(audio_bytes)
     features = extract_features(audio, sr, kind=feature_type)

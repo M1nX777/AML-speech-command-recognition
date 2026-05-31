@@ -52,7 +52,7 @@ async def get_classes() -> dict[str, list[str]]:
 
 @app.post("/api/predict", response_model=PredicitionOut)
 async def predict_audio(
-    file: UploadFile = File(...), feature_type: Literal["mfcc", "mel"] = "mel"
+    file: UploadFile = File(...), feature_type: Literal["mfcc", "mel"] = "mfcc"
 ) -> dict[str, object]:
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(

@@ -14,7 +14,7 @@ from train_model import Build_CNN_model, Build_MLP_model
 
 
 def start_project() -> None:
-    data_dir = Path.cwd().parent / "project_1_folder" / "data"
+    data_dir = Path(__file__).parent / "data"
     data = load_data(data_dir)
 
     fetur_funcs = {"mfcc": feature_extrac_mfcc, "mel": feature_extrac_mel}

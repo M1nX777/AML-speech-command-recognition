@@ -13,7 +13,6 @@ from project_1.models.train_functions import (
     get_predictions,
     model_CNN,
     model_MLP,
-    normalize_and_pad,
     save_callbacks,
     show_shape_model,
     visualize_loss_curve,
