@@ -14,29 +14,47 @@ The project also evaluates how robust both pipelines are when background noise i
 
 ### Dependencies
 
-The project uses Python and the following libraries or modules in the current notebook:
+The project uses Python 3.10 and the following libraries:
 
-* TensorFlow
-* Keras
+* TensorFlow + TensorBoard
 * NumPy
-* pandas
 * scikit-learn
-* matplotlib
-* seaborn
+* matplotlib + seaborn
 * librosa
 * plotly
 * tqdm
+* pydot / pydotplus / graphviz
+* nbformat
+* black + ruff (formatting/linting)
+* pre-commit
+* ipykernel
+
 
 ### Installing
 
 Clone the repository:
 git clone https://github.com/M1nX777/AML-speech-command-recognition.git
+git checkout project-1
 
 Install the dependencies using the project dependency file.
+pipenv install
+pipenv sync
+pipenv shell
 
-### Executing program
+Running with Docker
+Note: If Docker is not installed, install it first. A computer restart may be required after installation before Docker is available.
+# Navigate to the Docker folder
+cd docker
 
-The program can be executed by using the notebook project_analysis_2.ipynb.
+# Build the Docker image
+docker build -t fastapi-app .
+
+# Run the container
+docker run -p 80:80 fastapi-app
+
+Then open your browser and go to:
+http://localhost:80
+
 
 ## Current Models
 
