@@ -13,6 +13,32 @@ name_mlp = "Trained_model_mfcc-"
 BASE_DIR = Path(__file__).resolve().parent
 full_path = BASE_DIR / (name_mlp + __version__ + ".keras")
 
+_MODEL_CACHE: dict[tuple[str, str], Any] = {}
+
+
+def _model_filename(
+    feature_type: Literal["mfcc", "mel"], variant: Literal["standard", "robust"]
+) -> Path:
+    base = name_mlp if feature_type == "mfcc" else name_cnn
+    suffix = "-noise" if variant == "robust" else ""
+    return BASE_DIR / f"{base}{suffix}{_version_}.keras"
+
+
+def get_model(
+    feature_type: Literal["mfcc", "mel"], variant: Literal["standard", "robust"]
+) -> Any:
+    key = (feature_type, variant)
+    if key in _MODEL_CACHE:
+        return _MODEL_CACHE[key]
+
+    path = _model_filename(feature_type, variant)
+    if not path.exists():
+        raise FileNotFoundError(f"Model file not found: {path}")
+
+    mdl = load_model(path)
+    _MODEL_CACHE[key] = mdl
+    return mdl
+
 model: Any = load_model(full_path)
 
 classes = ["go", "left", "no", "on", "right", "stop", "up", "yes"]

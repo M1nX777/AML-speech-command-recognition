@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from app.model.model import __version__ as model_version
 from app.model.model import classes, prediction_pipeline
 
+classes = ["go", "left", "no", "on", "right", "stop", "up", "yes"]
+
 ALLOWED_TYPES = [
     "audio/wav",
     "audio/x-wav",
