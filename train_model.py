@@ -6,6 +6,7 @@ import numpy as np
 from keras.callbacks import EarlyStopping
 from keras.metrics import F1Score
 from keras.optimizers import AdamW
+from project_1.features.feature_extraction import add_gaussian_noise
 from project_1.models.train_functions import (
     cross_validation,
     evaluate_model,
@@ -30,6 +31,11 @@ def Build_MLP_model(
 ) -> None:
     name = "mfcc"
     n_folds = 10
+    X_train_val = add_gaussian_noise(
+        X_train_val,
+        noise_factor=0.5,
+        random_state=42
+    )
     mean_acc, std_dev = cross_validation(n_folds, X_train_val, y_train_val, name)
 
     print(
@@ -78,6 +84,11 @@ def Build_CNN_model(
 ) -> None:
     name = "mel"
     n_folds = 10
+    X_train_val = add_gaussian_noise(
+        X_train_val,
+        noise_factor=0.5,
+        random_state=42
+    )
     X_train_val = X_train_val[..., np.newaxis]
 
     mean_acc, std_dev = model_CNN()
