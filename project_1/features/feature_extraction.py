@@ -42,3 +42,19 @@ def split_feature(
         X, y, stratify=y, test_size=0.1, random_state=42
     )
     return X_train_val, X_test, y_train_val, y_test
+
+def add_gaussian_noise(
+    X: Sequence[np.ndarray] | np.ndarray,
+    noise_factor: float = 0.005,
+    random_state: int | None = None,
+) -> np.ndarray | Sequence[np.ndarray]:
+    rng = np.random.default_rng(random_state)
+
+    if isinstance(X, np.ndarray):
+        noise = rng.standard_normal(X.shape) * noise_factor
+        return X + noise
+
+    noisy_X = []
+    for x in X:
+        noisy_X.append(x + rng.standard_normal(x.shape) * noise_factor)
+    return noisy_X
